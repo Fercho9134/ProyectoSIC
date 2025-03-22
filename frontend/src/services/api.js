@@ -1,33 +1,40 @@
 export const fetchDetailedCryptoData = async (crypto, start, end) => {
-    try{
-        const url = "http://127.0.0.1:5000/api/crypto/data";
-        const data = {
-            coin_name: crypto,
-            start_date: start,
-            end_date: end
-        };
-        console.log("Data being sent:", JSON.stringify(data));
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
-
-        const responseData = await response.json();
-
-        if (response.ok) {
-            return {data: responseData};;
-        } else {
-            return {data: null};
-        }
-    }
-    catch (error) {
-        console.error("Error fetching detailed crypto data:", error);
+    try {
+      const url = "http://127.0.0.1:5000/api/crypto/data";
+      const data = {
+        coin_name: crypto,
+        start_date: start,
+        end_date: end,
+      };
+      console.log("Data being sent:", JSON.stringify(data));
+  
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+  
+      // Leer la respuesta como texto
+      const responseText = await response.text();
+  
+      // Sanitizar la respuesta: reemplazar "Infinity" con null
+      const sanitizedResponseText = responseText.replace(/"p_ratio":\s*Infinity/g, '"p_ratio": null');
+  
+      // Parsear la respuesta sanitizada como JSON
+      const responseData = JSON.parse(sanitizedResponseText);
+  
+      if (response.ok) {
+        return { data: responseData };
+      } else {
         return { data: null };
+      }
+    } catch (error) {
+      console.error("Error fetching detailed crypto data:", error);
+      return { data: null };
     }
-};
+  };
 
 export const fetchAllNames = async () => {
     try {

@@ -37,8 +37,8 @@ const Stats = () => {
   }
 
   const generateChartData = (data) => {
-    const chartLabels = data.map(point => point.date); // Las fechas serán las etiquetas de la gráfica
-    const chartData = data.map(point => point.price); // Los precios serán los datos de la gráfica
+    const chartLabels = data.map((point) => point.date); // Las fechas serán las etiquetas de la gráfica
+    const chartData = data.map((point) => point.price); // Los precios serán los datos de la gráfica
 
     return {
       labels: chartLabels,
@@ -47,15 +47,15 @@ const Stats = () => {
           label: "Precio",
           data: chartData,
           fill: true, // Rellenar el área bajo la línea
-          borderColor: "rgba(0, 0, 0, 0.6)", // Borde más visible
-          backgroundColor: "rgba(0, 0, 0, 0.1)", // Fondo de la gráfica más suave
+          borderColor: "rgba(255, 255, 255, 0.8)", // Borde blanco semi-transparente
+          backgroundColor: "rgba(255, 255, 255, 0.2)", // Fondo blanco semi-transparente
           tension: 0.4, // Curva más suave
           borderWidth: 2,
+          pointRadius: 1,
         },
       ],
     };
   };
-
 
   // Función para dar formato a los números monetarios
   const formatCurrency = (value) => {
@@ -63,8 +63,9 @@ const Stats = () => {
   };
 
   return (
-    <div className="py-12 px-6 bg-gray-50 min-h-screen">
-      <h1 className="text-4xl font-extrabold text-center text-blue-600 mb-6">
+    <div className="py-12 px-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+      {/* Título */}
+      <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
         Estadísticas de Criptomonedas
       </h1>
 
@@ -90,7 +91,7 @@ const Stats = () => {
       </div>
 
       {/* Media global del precio */}
-      <div className="mb-8">
+      <div className="mb-8 max-w-4xl mx-auto">
         <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl text-white font-semibold mb-4">Media Global del Precio</h2>
           <p className="text-xl text-white">
@@ -100,7 +101,7 @@ const Stats = () => {
       </div>
 
       {/* Criptomoneda con menor desviación estándar */}
-      <div className="mb-8">
+      <div className="mb-8 max-w-4xl mx-auto">
         <div className="bg-gradient-to-r from-green-500 to-teal-500 p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl text-white font-semibold mb-4">Criptomoneda con Menor Desviación Estándar</h2>
           <p className="text-xl text-white">
@@ -110,10 +111,10 @@ const Stats = () => {
       </div>
 
       {/* Criptomonedas más volátil y estable */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-6xl mx-auto">
         {/* Criptomoneda más estable */}
         <div>
-          <h2 className="text-2xl font-semibold text-blue-600 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
             Criptomoneda Más Estable del Año
           </h2>
           <div className="bg-gradient-to-r from-teal-500 to-green-500 p-6 rounded-lg shadow-lg">
@@ -121,34 +122,44 @@ const Stats = () => {
             <p className="text-white mb-4">Desviación Estándar: {volatilityStats.most_stable_coin.std_dev}</p>
             {/* Gráfico de la moneda estable */}
             <div className="h-80">
-              <Line data={generateChartData(volatilityStats.stable_coin_data)} options={{
-                responsive: true,
-                plugins: {
-                  tooltip: {
-                    backgroundColor: "rgba(0,0,0,0.7)",
-                    titleColor: "#fff",
-                    bodyColor: "#fff",
-                  },
-                },
-                scales: {
-                  x: {
-                    grid: { display: false },
-                  },
-                  y: {
-                    grid: { display: false },
-                    ticks: {
-                      color: "#fff",
+              <Line
+                data={generateChartData(volatilityStats.stable_coin_data)}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    tooltip: {
+                      backgroundColor: "rgba(0,0,0,0.7)",
+                      titleColor: "#fff",
+                      bodyColor: "#fff",
+                    },
+                    legend: {
+                      display: false,
                     },
                   },
-                },
-              }} />
+                  scales: {
+                    x: {
+                      grid: { display: false },
+                      ticks: {
+                        color: "#fff",
+                      },
+                    },
+                    y: {
+                      grid: { display: false },
+                      ticks: {
+                        color: "#fff",
+                      },
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
         </div>
 
         {/* Criptomoneda más volátil */}
         <div>
-          <h2 className="text-2xl font-semibold text-blue-600 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
             Criptomoneda Más Volátil del Año
           </h2>
           <div className="bg-gradient-to-r from-red-500 to-yellow-500 p-6 rounded-lg shadow-lg">
@@ -156,74 +167,93 @@ const Stats = () => {
             <p className="text-white mb-4">Desviación Estándar: {volatilityStats.most_volatile_coin.std_dev}</p>
             {/* Gráfico de la moneda volátil */}
             <div className="h-80">
-              <Line data={generateChartData(volatilityStats.volatile_coin_data)} options={{
-                responsive: true,
-                plugins: {
-                  tooltip: {
-                    backgroundColor: "rgba(0,0,0,0.7)",
-                    titleColor: "#fff",
-                    bodyColor: "#fff",
-                  },
-                },
-                scales: {
-                  x: {
-                    grid: { display: false },
-                  },
-                  y: {
-                    grid: { display: false },
-                    ticks: {
-                      color: "#fff",
+              <Line
+                data={generateChartData(volatilityStats.volatile_coin_data)}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    tooltip: {
+                      backgroundColor: "rgba(0,0,0,0.7)",
+                      titleColor: "#fff",
+                      bodyColor: "#fff",
+                    },
+                    legend: {
+                      display: false,
                     },
                   },
-                },
-              }} />
+                  scales: {
+                    x: {
+                      grid: { display: false },
+                      ticks: {
+                        color: "#fff",
+                      },
+                    },
+                    y: {
+                      grid: { display: false },
+                      ticks: {
+                        color: "#fff",
+                      },
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Top criptomonedas por encima de la media */}
-      <div>
-        <h2 className="text-2xl font-semibold text-blue-600 mb-6">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           Criptomonedas por Encima de la Media Global
         </h2>
 
         {/* Grid de criptomonedas */}
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-  {stats.top_cryptos.map((crypto, index) => (
-    <div
-      key={index}
-      className="p-6 rounded-xl shadow-lg transition-transform duration-500 ease-in-out hover:scale-105 hover:shadow-2xl bg-gradient-to-br from-cyan-400 to-sky-500" // Azul más bonito
-    >
-      <h3 className="text-2xl font-semibold text-white mb-3 text-center">{crypto.coin_name}</h3>
-      <p className="text-white text-sm mb-4 text-center">Media de precio: {formatCurrency(crypto.mean_price)} USD</p>
-      <div className="h-64"> {/* Ajusté el tamaño de la gráfica */}
-        <Line data={generateChartData(crypto.data)} options={{
-          responsive: true,
-          plugins: {
-            tooltip: {
-              backgroundColor: "rgba(0,0,0,0.7)",
-              titleColor: "#fff",
-              bodyColor: "#fff",
-            },
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-            },
-            y: {
-              grid: { display: false },
-              ticks: {
-                color: "#fff",
-              },
-            },
-          },
-        }} />
-      </div>
-    </div>
-  ))}
-</div>
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {stats.top_cryptos.map((crypto, index) => (
+            <div
+              key={index}
+              className="p-6 rounded-xl shadow-lg transition-transform duration-500 ease-in-out hover:scale-105 hover:shadow-2xl bg-gradient-to-br from-cyan-400 to-sky-500" // Azul más bonito
+            >
+              <h3 className="text-2xl font-semibold text-white mb-3 text-center">{crypto.coin_name}</h3>
+              <p className="text-white text-sm mb-4 text-center">Media de precio: {formatCurrency(crypto.mean_price)} USD</p>
+              <div className="h-64"> {/* Ajusté el tamaño de la gráfica */}
+                <Line
+                  data={generateChartData(crypto.data)}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      tooltip: {
+                        backgroundColor: "rgba(0,0,0,0.7)",
+                        titleColor: "#fff",
+                        bodyColor: "#fff",
+                      },
+                      legend: {
+                        display: false,
+                      },
+                    },
+                    scales: {
+                      x: {
+                        grid: { display: false },
+                        ticks: {
+                          color: "#fff",
+                        },
+                      },
+                      y: {
+                        grid: { display: false },
+                        ticks: {
+                          color: "#fff",
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Footer */}

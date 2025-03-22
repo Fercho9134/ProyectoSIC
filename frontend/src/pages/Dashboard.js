@@ -147,36 +147,47 @@ const Dashboard = () => {
         </div>
 
         {/* Gráfico de Bitcoin */}
-        <div className="bg-white p-6 rounded-lg shadow-lg lg:col-span-2">
-          <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
-            <FiTrendingUp className="mr-2 text-green-500" /> Precio de Bitcoin
-            por Mes
-          </h2>
-          {loading ? (
-            <div className="flex justify-center items-center">
-              <FaSpinner className="text-4xl text-blue-500 animate-spin" />
-            </div>
-          ) : (
-            <Line data={chartData} options={{ 
-              responsive: true, 
-              scales: {
-                x: {
-                  grid: {
-                    display: false,
-                  },
-                },
-                y: {
-                  grid: {
-                    display: false,
-                  },
-                  ticks: {
-                    color: "#333",
-                  },
-                },
+        <div className="bg-white p-6 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300 lg:col-span-2">
+  <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
+    <FiTrendingUp className="mr-2 text-green-500 text-3xl" /> Precio de Bitcoin por Mes
+  </h2>
+  {loading ? (
+    <div className="flex justify-center items-center">
+      <FaSpinner className="text-4xl text-blue-500 animate-spin" />
+    </div>
+  ) : (
+    <Line
+      data={chartData}
+      options={{
+        responsive: true,
+        scales: {
+          x: {
+            grid: {
+              display: false,
+            },
+          },
+          y: {
+            grid: {
+              display: false,
+            },
+            ticks: {
+              color: "#333",
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                size: 14,
               },
-            }} />
-          )}
-        </div>
+            },
+          },
+        },
+      }}
+    />
+  )}
+</div>
       </div>
       {/* Lista de Criptomonedas */}
       <div className="bg-white p-6 mt-6 rounded-lg shadow-lg">

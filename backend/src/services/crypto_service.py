@@ -1,6 +1,10 @@
 import pandas as pd
 from utils.data_loader import load_data
 from flask import jsonify
+from statsmodels.tsa.arima.model import ARIMA
+import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
 def get_summary():
     data = load_data()
@@ -11,12 +15,12 @@ def get_summary():
     return jsonify(summary), 200
 
 def get_crypto_data(request):
-    #Recibe como parametro un json con el coin_name, start_date y end_date
+    # Recibe como parámetro un json con el coin_name, start_date y end_date
     data = request.json
     coin_name = data.get('coin_name')
     start_date = data.get('start_date')
     end_date = data.get('end_date')
-    crypto_data=load_data()
+    crypto_data = load_data()
 
     if not coin_name or not start_date or not end_date:
         return jsonify({"message": "Missing required fields"}), 400
@@ -39,7 +43,26 @@ def get_crypto_data(request):
     precio_inicial = primeros_datos['price']
     precio_final = ultimos_datos['price']
     variacion = ((precio_final - precio_inicial) / precio_inicial) * 100
-    resultados['volume_market_cap_ratio'] = resultados['total_volume'] / resultados['market_cap']
+
+    # Calcular el ratio de volumen y market cap, manejando divisiones por cero o valores muy pequeños
+    resultados['volume_market_cap_ratio'] = resultados.apply(
+        lambda row: row['total_volume'] / row['market_cap'] if row['market_cap'] != 0 else None,
+        axis=1
+    )
+
+    # Reemplazar NaN e Infinity con None (que se convierte en null en JSON)
+    resultados['volume_market_cap_ratio'] = resultados['volume_market_cap_ratio'].replace(
+        [np.inf, -np.inf, np.nan], None
+    )
+
+    # Preparar datos para la predicción
+    time_series = resultados.set_index('date')['price']
+    model = ARIMA(time_series, order=(5, 1, 0))
+    model_fit = model.fit()
+    forecast = model_fit.forecast(steps=3)  # Predecir los próximos 3 días
+
+    # Imprimir la predicción en consola
+    print("\n\nPredicción de precios para los próximos 3 días:", forecast.tolist())
 
     response = {
         'summary': {
@@ -49,9 +72,13 @@ def get_crypto_data(request):
             'initial_price': precio_inicial,
             'final_price': precio_final,
             'price_change_percentage': variacion,
+            'predicted_prices': forecast.tolist()  # Añadir predicciones al response
         },
         'data': resultados.to_dict(orient='records')  # Datos filtrados como lista de diccionarios
     }
+
+    print("response")
+    print(response)
 
     return jsonify(response), 200
 
@@ -88,26 +115,58 @@ def get_crypto_by_date(request):
 def get_top_cryptos_by_year(crypto_data, year):
     # Filtrar los datos por el año
     crypto_data['date'] = pd.to_datetime(crypto_data['date'])
-    print("Crypto data:")
     year_data = crypto_data[crypto_data['date'].dt.year == int(year)]
 
-    print("Year data:")
-    print(year_data)
-
-    # Calcular la variación porcentual de precio para cada criptomoneda
-    top_cryptos = []
+    # Agrupar por criptomoneda y calcular métricas
+    crypto_metrics = []
     for coin_name in year_data['coin_name'].unique():
         coin_data = year_data[year_data['coin_name'] == coin_name]
-        first_price = coin_data.iloc[0]['price']
-        last_price = coin_data.iloc[-1]['price']
-        price_change = ((last_price - first_price) / first_price) * 100
-        top_cryptos.append({'coin_name': coin_name, 'price_change': price_change})
+        
+        # Calcular métricas
+        price_change = ((coin_data['price'].iloc[-1] - coin_data['price'].iloc[0]) / coin_data['price'].iloc[0] * 100)
+        avg_volume = coin_data['total_volume'].mean()
+        avg_market_cap = coin_data['market_cap'].mean()
+        
+        crypto_metrics.append({
+            'coin_name': coin_name,
+            'price_change': price_change,
+            'avg_volume': avg_volume,
+            'avg_market_cap': avg_market_cap
+        })
     
-    # Ordenar por la mayor variación porcentual
-    top_cryptos_sorted = sorted(top_cryptos, key=lambda x: abs(x['price_change']), reverse=True)
+    # Convertir a DataFrame
+    metrics_df = pd.DataFrame(crypto_metrics)
     
-    # Seleccionar las 4 más interesantes (con mayor cambio)
-    return top_cryptos_sorted[:4]
+    # Normalizar las métricas
+    scaler = StandardScaler()
+    scaled_metrics = scaler.fit_transform(metrics_df[['price_change', 'avg_volume', 'avg_market_cap']])
+    
+    # Aplicar K-Means clustering
+    kmeans = KMeans(n_clusters=4, random_state=42)  # 4 clusters para seleccionar las 4 más interesantes
+    clusters = kmeans.fit_predict(scaled_metrics)
+    
+    # Asignar clusters a las criptomonedas
+    metrics_df['cluster'] = clusters
+    
+    # Seleccionar las criptomonedas más interesantes (las más cercanas al centroide de cada cluster)
+    top_cryptos = []
+    for cluster_id in range(4):  # 4 clusters
+        cluster_data = metrics_df[metrics_df['cluster'] == cluster_id]
+        centroid = kmeans.cluster_centers_[cluster_id]
+        
+        # Calcular la distancia al centroide
+        cluster_data['distance_to_centroid'] = np.linalg.norm(
+            scaler.transform(cluster_data[['price_change', 'avg_volume', 'avg_market_cap']]) - centroid,
+            axis=1
+        )
+        
+        # Seleccionar la criptomoneda más cercana al centroide
+        most_interesting_coin = cluster_data.loc[cluster_data['distance_to_centroid'].idxmin()]
+        top_cryptos.append(most_interesting_coin)
+
+    print("Se encontraron las mas interesantes usando KMeans") 
+    
+    return top_cryptos
 
 def get_most_interesting_data(request):
     data = request.json
@@ -122,7 +181,6 @@ def get_most_interesting_data(request):
     # Obtener las 4 criptomonedas más interesantes
     top_cryptos = get_top_cryptos_by_year(crypto_data, year)
 
-
     # Preparar los datos para devolver
     top_cryptos_data = []
     for coin in top_cryptos:
@@ -135,7 +193,6 @@ def get_most_interesting_data(request):
         
         top_cryptos_data.append({
             'coin_name': coin_name,
-            'price_change': coin['price_change'],
             'data': coin_prices
         })
 

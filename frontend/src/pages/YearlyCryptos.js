@@ -37,9 +37,9 @@ const YearlyCrypto = () => {
   }, [year]);
 
   return (
-    <div className="py-12 px-6 bg-gray-50 min-h-screen">
+    <div className="py-12 px-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       {/* Título */}
-      <h1 className="text-4xl font-extrabold text-center text-blue-600 mb-6">
+      <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
         MarketCaps de Criptomonedas en el Año {year}
       </h1>
 
@@ -67,7 +67,7 @@ const YearlyCrypto = () => {
       </div>
 
       {/* Listado de Criptomonedas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
         {loading ? (
           // Mostrar el spinner de carga mientras los datos se están obteniendo
           <div className="col-span-full flex justify-center items-center">

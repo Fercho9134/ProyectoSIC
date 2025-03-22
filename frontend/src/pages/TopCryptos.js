@@ -2,11 +2,16 @@ import React, { useState, useEffect } from "react";
 import { fetchTopCryptosByYear } from "../services/api"; // Función para obtener las criptomonedas más interesantes por año
 import { BsCalendarDate } from "react-icons/bs"; // Icono para el selector de año
 import { Line } from "react-chartjs-2"; // Usamos Chart.js para las gráficas
-import { FaBitcoin, FaEthereum, FaDollarSign, FaMoneyBillWave } from "react-icons/fa"; // Nuevos iconos relacionados con dinero
+import {
+  FaBitcoin,
+  FaEthereum,
+  FaDollarSign,
+  FaMoneyBillWave,
+} from "react-icons/fa"; // Iconos relacionados con dinero
 import { FaSpinner } from "react-icons/fa"; // Icono de carga
 import Footer from "../components/Footer";
 
-// Nuevos gradientes
+// Nuevos gradientes para las tarjetas
 const gradients = [
   "from-green-400 to-blue-500",
   "from-pink-400 to-yellow-500",
@@ -16,10 +21,10 @@ const gradients = [
 
 // Iconos fijos
 const icons = [
-  <FaBitcoin />,
-  <FaEthereum />,
-  <FaDollarSign />,
-  <FaMoneyBillWave />
+  <FaBitcoin className="text-4xl text-yellow-500" />,
+  <FaEthereum className="text-4xl text-purple-500" />,
+  <FaDollarSign className="text-4xl text-green-500" />,
+  <FaMoneyBillWave className="text-4xl text-blue-500" />,
 ];
 
 const TopCryptos = () => {
@@ -40,8 +45,8 @@ const TopCryptos = () => {
 
   // Función para obtener los datos de la gráfica
   const getChartData = (data) => {
-    const chartLabels = data.map(point => point.date); // Las fechas serán las etiquetas de la gráfica
-    const chartData = data.map(point => point.price); // Los precios serán los datos de la gráfica
+    const chartLabels = data.map((point) => point.date); // Las fechas serán las etiquetas de la gráfica
+    const chartData = data.map((point) => point.price); // Los precios serán los datos de la gráfica
 
     return {
       labels: chartLabels,
@@ -50,23 +55,36 @@ const TopCryptos = () => {
           label: "Precio",
           data: chartData,
           fill: true, // Rellenar el área bajo la línea
-          borderColor: "rgba(0, 0, 0, 0.6)", // Borde más visible
-          backgroundColor: "rgba(0, 0, 0, 0.1)", // Fondo de la gráfica más suave
+          borderColor: "rgba(255, 255, 255, 0.8)", // Borde blanco semi-transparente
+          backgroundColor: "rgba(255, 255, 255, 0.2)", // Fondo blanco semi-transparente
           tension: 0.4, // Curva más suave
           borderWidth: 2,
+          pointRadius: 1,
         },
       ],
     };
   };
 
   return (
-    <div className="py-12 px-6 bg-gray-50 min-h-screen">
+    <div className="py-12 px-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       {/* Título */}
-      <h1 className="text-4xl font-extrabold text-center text-blue-600 mb-6">
+      <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
         Las 4 Criptomonedas Más Interesantes en el Año {year}
       </h1>
 
-      {/* Filtro de Año */}
+      {/* Explicación sobre la selección con IA */}
+      <div className="max-w-2xl mx-auto text-center text-gray-600 mb-12">
+        <p className="text-lg">
+          Estas criptomonedas fueron seleccionadas mediante un análisis de{" "}
+          <span className="font-semibold text-blue-600">
+            Inteligencia Artificial
+          </span>{" "}
+          que evaluó su destacada variación en el precio, volumen de
+          transacciones y capitalización de mercado. Son las más interesantes
+          del año por su crecimiento y estabilidad en estos aspectos clave.
+        </p>
+      </div>
+
       {/* Filtro de Año */}
       <div className="flex justify-center mb-12">
         <div className="flex items-center border-2 border-blue-600 rounded-lg p-2 bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg">
@@ -100,7 +118,7 @@ const TopCryptos = () => {
       </div>
 
       {/* Listado de Criptomonedas y sus Gráficas en un grid 2x2 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
         {loading ? (
           <div className="col-span-2 flex justify-center items-center">
             <FaSpinner className="text-4xl text-blue-500 animate-spin" />
@@ -118,35 +136,47 @@ const TopCryptos = () => {
                 </div>
               </div>
 
-              <h2 className="text-2xl font-semibold text-white mb-3 text-center">{crypto.coin_name}</h2>
+              <h2 className="text-2xl font-semibold text-white mb-3 text-center">
+                {crypto.coin_name}
+              </h2>
 
               {/* Gráfica */}
               <div className="h-64">
-                <Line data={getChartData(crypto.data)} options={{
-                  responsive: true,
-                  plugins: {
-                    tooltip: {
-                      backgroundColor: "rgba(0,0,0,0.7)",
-                      titleColor: "#fff",
-                      bodyColor: "#fff",
-                    },
-                  },
-                  scales: {
-                    x: {
-                      grid: {
+                <Line
+                  data={getChartData(crypto.data)}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      tooltip: {
+                        backgroundColor: "rgba(0,0,0,0.7)",
+                        titleColor: "#fff",
+                        bodyColor: "#fff",
+                      },
+                      legend: {
                         display: false,
                       },
                     },
-                    y: {
-                      grid: {
-                        display: false,
+                    scales: {
+                      x: {
+                        grid: {
+                          display: false,
+                        },
+                        ticks: {
+                          color: "#fff",
+                        },
                       },
-                      ticks: {
-                        color: "#fff",
+                      y: {
+                        grid: {
+                          display: false,
+                        },
+                        ticks: {
+                          color: "#fff",
+                        },
                       },
                     },
-                  },
-                }} />
+                  }}
+                />
               </div>
             </div>
           ))
